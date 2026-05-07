@@ -32,8 +32,7 @@ export default function InterviewPage() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState({});
   const [analyses, setAnalyses] = useState({});
-  const [typedAnswer, setTypedAnswer] = useState('');
-  const [inputMode, setInputMode] = useState('voice');
+  const [voiceTranscript, setVoiceTranscript] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [completing, setCompleting] = useState(false);
@@ -41,7 +40,6 @@ export default function InterviewPage() {
   const [showEmotionReport, setShowEmotionReport] = useState(false);
   const [emotionReport, setEmotionReport] = useState(null);
   const chatEndRef = useRef(null);
-  const textareaRef = useRef(null);
 
   // Security Orchestrator
   const { 
@@ -127,26 +125,26 @@ export default function InterviewPage() {
   // but removing timer based auto-submission as requested.
 
   useEffect(() => {
-    if (transcript && inputMode === 'voice') setTypedAnswer(transcript);
-  }, [transcript, inputMode]);
+    if (transcript) setVoiceTranscript(transcript);
+  }, [transcript]);
 
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [answers, currentIdx, typedAnswer, analyzing]);
+  }, [answers, currentIdx, voiceTranscript, analyzing]);
 
   const handleStartListening = () => {
     isRequestingPermissionRef.current = true;
     setTranscript('');
-    setTypedAnswer('');
-    startListening(t => setTypedAnswer(t));
+    setVoiceTranscript('');
+    startListening(t => setVoiceTranscript(t));
     setTimeout(() => { isRequestingPermissionRef.current = false; }, 5000);
   };
 
   const handleAnalyze = useCallback(async () => {
     const currentQ = questions[currentIdx];
-    const answerText = typedAnswer.trim();
+    const answerText = voiceTranscript.trim();
     if (!answerText || !currentQ) return;
     
     setAnalyzing(true);
@@ -179,11 +177,11 @@ export default function InterviewPage() {
     } finally {
       setAnalyzing(false);
     }
-  }, [typedAnswer, currentIdx, questions, stopSpeaking, stopListening, speak]);
+  }, [voiceTranscript, currentIdx, questions, stopSpeaking, stopListening, speak]);
 
   const handleNext = () => {
     setShowFollowUp(false);
-    setTypedAnswer('');
+    setVoiceTranscript('');
     setTranscript('');
     stopSpeaking();
     stopListening();
@@ -394,10 +392,10 @@ export default function InterviewPage() {
                     )}
 
                     {/* User Answer */}
-                    {(answers[q.id] || (idx === currentIdx && typedAnswer)) && (
+                    {(answers[q.id] || (idx === currentIdx && voiceTranscript)) && (
                       <div className="flex items-start justify-end">
                         <div className="bg-indigo-600 text-white px-6 py-4 rounded-3xl rounded-tr-sm shadow-lg max-w-[85%]">
-                           <p className="leading-relaxed font-medium">{answers[q.id] || typedAnswer}</p>
+                           <p className="leading-relaxed font-medium">{answers[q.id] || voiceTranscript}</p>
                         </div>
                         <div className="w-10 h-10 rounded-2xl bg-slate-200 text-slate-600 flex items-center justify-center ml-4 shrink-0 mt-1 shadow-sm font-black uppercase">
                           {resumeData?.name?.charAt(0) || 'U'}
@@ -442,28 +440,14 @@ export default function InterviewPage() {
                   </button>
                   
                   <div className="relative flex-1 group">
-                    <textarea
-                      ref={textareaRef}
-                      value={typedAnswer}
-                      onChange={(e) => {
-                        setTypedAnswer(e.target.value);
-                        e.target.style.height = 'auto';
-                        e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`;
-                      }}
-                      onFocus={() => setInputMode('type')}
-                      disabled={(isAnswered && !showFollowUp) || analyzing}
-                      placeholder={isListening ? "Listening to your voice..." : "Type your answer or use the mic..."}
-                      rows={1}
-                      className="w-full min-h-[64px] max-h-[150px] bg-slate-100 rounded-[2rem] border-2 border-transparent px-8 py-5 outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-slate-700 disabled:opacity-50 resize-none overflow-y-auto custom-scrollbar"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleAnalyze();
-                        }
-                      }}
-                    />
-                    <div className="absolute right-6 bottom-4 flex items-center gap-2">
-                       <button onClick={() => speak(currentQ?.question)} className="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+                    <div 
+                      className={`w-full min-h-[64px] max-h-[150px] bg-slate-100 rounded-[2rem] border-2 border-indigo-100/50 px-8 py-5 transition-all font-medium text-slate-700 overflow-y-auto custom-scrollbar flex items-center ${!voiceTranscript && 'italic text-slate-400'}`}
+                    >
+                      <Activity size={16} className={`mr-3 ${isListening ? 'text-rose-500 animate-pulse' : 'text-slate-400'}`} />
+                      {voiceTranscript || (isListening ? "Listening to your voice..." : "Voice input ready. Click the mic to speak.")}
+                    </div>
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                       <button onClick={() => speak(currentQ?.question)} className="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Hear Question Again">
                           <Volume2 size={20} />
                        </button>
                     </div>
@@ -490,14 +474,14 @@ export default function InterviewPage() {
                     )}
                     <button
                       onClick={handleAnalyze}
-                      disabled={!typedAnswer.trim() || analyzing}
+                      disabled={!voiceTranscript.trim() || analyzing}
                       className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-10 h-16 rounded-3xl font-black transition-all shadow-xl hover:shadow-emerald-500/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                     >
                       {analyzing ? <Loader2 className="animate-spin" /> : <Send size={20} />}
-                      {currentIdx === questions.length - 1 && !typedAnswer.trim() ? (
+                      {currentIdx === questions.length - 1 && !voiceTranscript.trim() ? (
                         'Finish Interview'
                       ) : (
-                        'Submit Answer'
+                        'Submit Voice Answer'
                       )}
                     </button>
                   </div>

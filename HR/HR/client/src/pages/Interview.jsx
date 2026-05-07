@@ -362,14 +362,11 @@ const Interview = () => {
                   {listening ? <StopCircle size={24} /> : <Mic size={24} />}
                 </button>
                 
-                <input
-                  type="text"
-                  value={textAnswer}
-                  onChange={(e) => setTextAnswer(e.target.value)}
-                  placeholder="Type your answer or click the mic to speak..."
-                  className="flex-1 h-14 bg-slate-100 rounded-full border border-slate-200 px-6 outline-none focus:ring-2 focus:ring-primary-300 transition-all text-sm w-full"
-                  onKeyDown={(e) => e.key === 'Enter' && handleSubmitAnswer()}
-                />
+                <div className="flex-1 text-center">
+                  <p className="text-sm text-slate-600">
+                    {listening ? "Listening... Speak your answer" : "Click the mic to start speaking"}
+                  </p>
+                </div>
               </div>
             </div>
             
