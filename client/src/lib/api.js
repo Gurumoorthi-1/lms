@@ -4,7 +4,7 @@
  * User data is always sourced from DB (via /auth/me), never from stale localStorage.
  */
 
-export const BASE_URL = 'http://localhost:5002';
+export const BASE_URL = 'http://127.0.0.1:5002';
 
 // Global variables to deduplicate requests and cache results in-memory
 let userCache = null;
