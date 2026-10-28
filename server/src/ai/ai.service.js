@@ -27,10 +27,11 @@ export class AiService {
       try {
         console.log('[YouTube] Trying Apify scraper...');
         const runRes = await axios.post(
-          `https://api.apify.com/v2/acts/bernardo~youtube-transcript-scraper/runs?token=${apifyToken}`,
+          `https://api.apify.com/v2/acts/shephouse~youtube-transcript-scraper-bulk/runs?token=${apifyToken}`,
+          // bernardo/youtube-transcript-scraper was removed from Apify (404).
           {
-            urls: [videoUrl],
-            outputFormat: 'plainText'
+            startUrls: [{ url: videoUrl }],
+            maxTranscripts: 1
           },
           { headers: { 'Content-Type': 'application/json' }, timeout: 60000 }
         );
@@ -60,6 +61,9 @@ export class AiService {
               const items = itemsRes.data;
               if (items && items.length > 0) {
                 const item = items[0];
+                if (item.status && item.status !== 'OK') {
+                  throw new Error(`transcript unavailable: ${item.status}`);
+                }
                 title = item.title || title;
                 transcript = item.transcript || item.text || item.captions || '';
                 if (typeof transcript === 'object') {
