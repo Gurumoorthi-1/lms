@@ -153,7 +153,7 @@ PORT=5000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_production_level_secure_jwt_secret_key_string
 OPENAI_API_KEY=sk-or-v1-...  # For LLM-based evaluation & interview modules
-APIFY_API_TOKEN=apify_api_... # (Optional) For specialized web data processing
+APIFY_API_TOKEN=apify_api_... # (Optional) YouTube transcripts via the shephouse/youtube-transcript-scraper-bulk Actor; without it the youtube-transcript package is used
 ```
 
 Create a `.env` file inside the `/client` directory:
