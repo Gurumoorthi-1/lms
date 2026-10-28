@@ -27,10 +27,10 @@ export class AiService {
       try {
         console.log('[YouTube] Trying Apify scraper...');
         const runRes = await axios.post(
-          `https://api.apify.com/v2/acts/bernardo~youtube-transcript-scraper/runs?token=${apifyToken}`,
+          `https://api.apify.com/v2/acts/johnvc~YoutubeTranscripts/runs?token=${apifyToken}`,
           {
-            urls: [videoUrl],
-            outputFormat: 'plainText'
+            youtube_url: [videoUrl],
+            output_formats: ['text']
           },
           { headers: { 'Content-Type': 'application/json' }, timeout: 60000 }
         );
