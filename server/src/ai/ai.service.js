@@ -40,8 +40,8 @@ export class AiService {
         if (runId) {
           // Wait for the run to complete (poll every 3s, max 60s)
           let attempts = 0;
-          let status = 'RUNNING';
-          while (status === 'RUNNING' && attempts < 20) {
+          let status = runRes.data?.data?.status || 'READY';
+          while ((status === 'READY' || status === 'RUNNING') && attempts < 20) {
             await new Promise(r => setTimeout(r, 3000));
             const statusRes = await axios.get(
               `https://api.apify.com/v2/actor-runs/${runId}?token=${apifyToken}`,
@@ -61,8 +61,9 @@ export class AiService {
               const items = itemsRes.data;
               if (items && items.length > 0) {
                 const item = items[0];
+                // Videos without captions come back as { status: 'FAILED', errorCode, errorMessage } and are not charged
                 if (item.status && item.status !== 'OK') {
-                  throw new Error(`transcript unavailable: ${item.status}`);
+                  throw new Error(`transcript unavailable (${item.errorCode || item.status}): ${item.errorMessage || 'no transcript'}`);
                 }
                 title = item.title || title;
                 transcript = item.transcript || item.text || item.captions || '';
